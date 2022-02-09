@@ -70,6 +70,7 @@ namespace Excel_Manipulation_Learning
             this.label15 = new System.Windows.Forms.Label();
             this.refload_main = new System.Windows.Forms.ComboBox();
             this.refload_cb = new System.Windows.Forms.ComboBox();
+            this.label16 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // button2
@@ -431,6 +432,7 @@ namespace Excel_Manipulation_Learning
             this.refload_main.Name = "refload_main";
             this.refload_main.Size = new System.Drawing.Size(274, 23);
             this.refload_main.TabIndex = 37;
+            this.refload_main.SelectedIndexChanged += new System.EventHandler(this.refload_main_SelectedIndexChanged);
             // 
             // refload_cb
             // 
@@ -441,11 +443,21 @@ namespace Excel_Manipulation_Learning
             this.refload_cb.TabIndex = 40;
             this.refload_cb.SelectedIndexChanged += new System.EventHandler(this.refload_cb_SelectedIndexChanged);
             // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(543, 412);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(39, 15);
+            this.label16.TabIndex = 41;
+            this.label16.Text = "Status";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.label16);
             this.Controls.Add(this.refload_cb);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label15);
@@ -536,6 +548,7 @@ namespace Excel_Manipulation_Learning
         public System.Windows.Forms.Label label15;
         private System.Windows.Forms.ComboBox refload_main;
         private System.Windows.Forms.ComboBox refload_cb;
+        private System.Windows.Forms.Label label16;
     }
 }
 

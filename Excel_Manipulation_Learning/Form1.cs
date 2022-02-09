@@ -59,6 +59,8 @@ namespace Excel_Manipulation_Learning
         int csn = 0;
         int mval = 0;
         int dle = 0;
+        int frl = 0;
+        int awp = 0;
 
         int qf = 1;
         int ref_val = 0;
@@ -66,6 +68,14 @@ namespace Excel_Manipulation_Learning
         int qvm = 0;
 
         int fff = 0;
+
+        int ref_mc = 0;
+        int ref_mval = 0;
+        int ref_dle = 0;
+        int ref_awp = 0;
+        int ref_csn = 0;
+
+        int q_ref = 1;
 
         Excel.Application xlApp1;
         Excel.Workbooks xlWbks1;
@@ -78,10 +88,10 @@ namespace Excel_Manipulation_Learning
 
         Excel.Range xlUsedRange;
 
-        Excel.Range xlUsedRange_range;
-        Excel.Range filteredRange1_ref1;
+   
         Excel.Range filteredRange1_ref;
         Excel.Worksheet xlWorkSheet1_rl;
+       
 
 
         private void button2_Click(object sender, EventArgs e)
@@ -107,74 +117,46 @@ namespace Excel_Manipulation_Learning
 
                                 MessageBox.Show("Clear All Filter?");
                                 xlUsedRange1.Worksheet.AutoFilterMode = false;*/
-                if (ff == 1)
-                {
-                    xlApp1_rl = new Excel.Application();
-                    xlWbks1_rl = xlApp1_rl.Workbooks;
-                    xlWbk1_rl = xlWbks1_rl.Open(refload_excel);
-                    ff = 0;
-                }
-                Excel.Worksheet xlWorkSheet1_rl = xlWbk1_rl.Sheets[refload_sub];
+             
+                xlApp1_rl = new Excel.Application();
+                xlWbks1_rl = xlApp1_rl.Workbooks;
+                xlWbk1_rl = xlWbks1_rl.Open(refload_excel);
+                xlWorkSheet1_rl = xlWbk1_rl.Sheets[refload_sub];
                 xlWorkSheet1_rl.Activate();
                 xlApp1_rl.Visible = true;
-
-                Excel.Range xlUsedRange_rl = xlWorkSheet1_rl.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
-
-                xlUsedRange_rl.AutoFilter(1,"Blade", Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
-                Excel.Range filteredRange1_ref = xlUsedRange_rl.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
-
-
-                filteredRange1_ref.AutoFilter(7, "11", Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
-                Excel.Range filteredRange1_ref1 = filteredRange1_ref.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
-         
-
                 var refdic = new Dictionary<string, string>();
+                Excel.Range xlRange = xlWorkSheet1_rl.UsedRange;
+                //Excel.Range xlRange = xlWorksheet.UsedRange;
+                xlRange.AutoFilter(7, "10", Excel.XlAutoFilterOperator.xlFilterValues, Type.Missing, true);
 
-                int ccc = filteredRange1_ref.Rows.Count;
-                foreach (Excel.Range area3 in filteredRange1_ref1.Areas)
+                xlRange.AutoFilter(1, "Blade", Excel.XlAutoFilterOperator.xlFilterValues, Type.Missing, true);
+
+                int rowCount = xlRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible).Rows.Count;
+                int colCount = xlRange.Columns.Count;
+
+                foreach (Excel.Range row in xlRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible).Rows)
                 {
-                    foreach (Excel.Range row10 in area3.Rows)
+                    Excel.Range MainComponent = (Excel.Range)row.Cells[1, 24];
+
+                    Excel.Range DIE = (Excel.Range)row.Cells[1, 1];
+
+                    if ((MainComponent.Value2 != null) && (DIE.Value2 != null))
                     {
-
-
-                        MessageBox.Show(((Excel.Range)row10.Cells[1, 1]).Text);
-                        if (((Excel.Range)row10.Cells[1, 1]).Text == "Main Component" && ((Excel.Range)row10.Cells[1, 24]).Text == "Common Name" && ((Excel.Range)row10.Cells[1, 9]).Text == "D.L.E.")
-                        {
-                            continue;
-                        }
-                        else if (((Excel.Range)row10.Cells[1, 1]).Text == "Blade" && ((Excel.Range)row10.Cells[1, 24]).Text != "")
-                        {
-                            refdic.Add(((Excel.Range)row10.Cells[1, 24]).Text, ((Excel.Range)row10.Cells[1, 9]).Text);
-                        }
-                        else if (((Excel.Range)row10.Cells[1, 1]).Text != "Blade")
-                        {
-                            goto RefLoopEnd;
-                        }
-                        //MessageBox.Show(((Excel.Range)row10.Cells[1, 11]).Text);
-
-                        /* if (((Excel.Range)row10.Cells[1, 11]).Text == "D.L.E.")
-                         {
-                             continue;
-                         }
-                         else if (((Excel.Range)row10.Cells[1, 11]).Text != "")
-                         {
-                             refdic.Add(((Excel.Range)row10.Cells[1,11]).Text, ((Excel.Range)row10.Cells[1,11]).Text);
-                         }
-                         else
-                         {
-                             break;
-                         }*/
-
-                        // MessageBox.Show(((Excel.Range)row10.Cells[1, 9]).Text);//DLE
-
-                        // MessageBox.Show(((Excel.Range)row10.Cells[1, 24]).Text);//CSN
-
-
+                        MessageBox.Show(DIE.Value2.ToString());
+                        MessageBox.Show(MainComponent.Value2.ToString());
                     }
-                
+                    else
+                    {
+                        break;
+                    }
                 }
-            RefLoopEnd:
-                MessageBox.Show("cmpted");
+
+                //cleanup
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                //release com objects to fully kill excel process from running in the background
+               
             }
             catch (Exception theException)
             {
@@ -242,6 +224,15 @@ namespace Excel_Manipulation_Learning
                     else if (cell.Value == "D.L.E.")
                     {
                         dle = colnum;
+                        
+                    }
+                    else if(cell.Value2 == "FLAp reference load")
+                    {
+                        frl = colnum;
+                    }
+                    else if (cell.Value2 == "FLAp AWP margin")
+                    {
+                        awp = colnum;
                         break;
                     }
                     colnum += 1;
@@ -523,53 +514,94 @@ namespace Excel_Manipulation_Learning
                     xlWorkSheet1_rl.Activate();
                     xlApp1_rl.Visible = true;
 
+               
+
+                    //Excel.Range xlUsedRange_range = xlWorkSheet1_rl.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
+                   
+                    Excel.Range xlRange = xlWorkSheet1_rl.UsedRange;
+                    xlRange.Columns.Hidden = false;
+                    //Excel.Range xlRange = xlWorksheet.UsedRange;
+                    xlRange.AutoFilter(7,val, Excel.XlAutoFilterOperator.xlFilterValues, Type.Missing, true);
+
+                    xlRange.AutoFilter(1, ki, Excel.XlAutoFilterOperator.xlFilterValues, Type.Missing, true);
+
+                    
+
+                    //cleanup
+                 
+
+                    //finding rowindex
+                    int refnum = 1;
+                    if(q_ref ==1)
+                    {
+                        foreach (Excel.Range row in xlRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible).Columns)
+                        {
+                            Excel.Range cell = (Excel.Range)row.Cells[1, 1];
+                            //MessageBox.Show(cell.Value2);
+                            if (cell.Value2 == "Main Component")
+                            {
+                                ref_mc = refnum;
+                            }
+                            else if (cell.Value2 == "m")
+                            {
+                                ref_mval = refnum;
+
+                            }
+                            else if (cell.Value == "D.L.E.")
+                            {
+                                ref_dle = refnum;
+
+                            }
+                            else if (cell.Value2 == "AWP Safety Margin")
+                            {
+                                ref_awp = refnum;
+                            }
+                            else if (cell.Value2 == "Common Name")
+                            {
+                                ref_csn = refnum;
+                                q_ref = 0;
+                                break;
+                            }
 
 
-                    xlUsedRange_range = xlWorkSheet1_rl.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
+                            refnum += 1;
+                        }
+                    }
 
-                    xlUsedRange_range.AutoFilter(1, ki, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
-
-                    filteredRange1_ref = xlUsedRange_range.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
-
-
-                    filteredRange1_ref.AutoFilter(7, val, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
-                    filteredRange1_ref1 = filteredRange1_ref.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
+                    int rowCount = xlRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible).Rows.Count;
+                    int colCount = xlRange.Columns.Count;
 
                     var refdic = new Dictionary<string, string>();
+                    var refms = new Dictionary<string, string>();
 
-                    foreach (Excel.Range area3 in filteredRange1_ref1.Columns)
+                    foreach (Excel.Range row in xlRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible).Rows)
                     {
-                        string si = Convert.ToString(area3.Cells[1, 1].Value2);
-                        MessageBox.Show(si);
-                        foreach (Excel.Range row10 in area3.EntireRow)
+                        Excel.Range MainComponent = (Excel.Range)row.Cells[1, ref_mc];
+
+                        Excel.Range DIE = (Excel.Range)row.Cells[1, ref_dle];
+                        Excel.Range SCN = (Excel.Range)row.Cells[1, ref_csn];
+                        Excel.Range AWP = (Excel.Range)row.Cells[1, ref_awp];
+                        if (((Excel.Range)row.Cells[1, ref_mc]).Text == "Main Component" && ((Excel.Range)row.Cells[1, ref_csn]).Text == "Common Name" && ((Excel.Range)row.Cells[1, ref_dle]).Text == "D.L.E.")
                         {
-
-                            // MessageBox.Show(((Excel.Range)row10.Cells[1, 1]).Text);
-
-
-                            if (((Excel.Range)row10.Cells[1, 1]).Text == "Main Component" && ((Excel.Range)row10.Cells[1, 24]).Text == "Common Name" && ((Excel.Range)row10.Cells[1, 9]).Text == "D.L.E.")
-                            {
-                                continue;
-                            }
-                            else if (((Excel.Range)row10.Cells[1, 1]).Text != ki)
-                            {
-                                goto RefLoopEnd;
-                            }
-                            else if (((Excel.Range)row10.Cells[1, 1]).Text == ki)
-                            {
-                                refdic.Add(((Excel.Range)row10.Cells[1, 24]).Text, ((Excel.Range)row10.Cells[1, 9]).Text);
-                            }
-
-
-                            // MessageBox.Show(((Excel.Range)row10.Cells[1, 9]).Text);//DLE
-
-                            // MessageBox.Show(((Excel.Range)row10.Cells[1, 24]).Text);//CSN
+                            continue;
                         }
-
+                        else if ((MainComponent.Value2 == ki))
+                        {
+                         
+                            //MessageBox.Show(MainComponent.Value2.ToString());
+                            refdic.Add(((Excel.Range)row.Cells[1, ref_csn]).Text, ((Excel.Range)row.Cells[1, ref_dle]).Text);
+                            refms.Add(((Excel.Range)row.Cells[1, ref_csn]).Text, ((Excel.Range)row.Cells[1, ref_awp]).Text);
+                        }
+                        else
+                        {
+                            goto RefLoopEnd;
+                        }
                     }
                 RefLoopEnd:
-                    MessageBox.Show("cmpted");
+                    label16.Text = ki + " completed";
 
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
 
 
 
@@ -579,11 +611,10 @@ namespace Excel_Manipulation_Learning
                         int flag = 0;
                         foreach (var k in refdic)
                         {
-
-                            if (ref_sen[i] == k.Key)
+                            if (ref_sen[i].Equals(k.Key, StringComparison.OrdinalIgnoreCase))
                             {
 
-                                //MessageBox.Show(k.Value);
+
                                 reforgsen.Add(k.Value);
                                 flag = 1;
                             }
@@ -595,7 +626,25 @@ namespace Excel_Manipulation_Learning
 
                     }
 
+                    var refms_2 = new List<string>();
+                    for (int i = 0; i < ref_sen.Count; i++)
+                    {
+                        int flag = 0;
+                        foreach (var k in refms)
+                        {
 
+                            if (ref_sen[i].Equals(k.Key, StringComparison.OrdinalIgnoreCase))
+                            {
+                                refms_2.Add(k.Value);
+                                flag = 1;
+                            }
+                        }
+                        if (flag == 0)
+                        {
+                            refms_2.Add("");
+                        }
+
+                    }
 
                     var Dicval = new Dictionary<string, string>();  
 
@@ -605,8 +654,6 @@ namespace Excel_Manipulation_Learning
                         {
                             int SensorRowIndex = 0;
 
-                            // MessageBox.Show(((Excel.Range)row.Cells[1, qvcsn]).Text);
-
 
                             if(((Excel.Range)row.Cells[1, qvcsn]).Text != "")
                             {
@@ -615,8 +662,6 @@ namespace Excel_Manipulation_Learning
                             else
                             {
                                 SensorRowIndex = 0;
-
-                                //MessageBox.Show(((Excel.Range)row.Cells[SensorRowIndex, qvcsn]).Text);
                             }
                    
 
@@ -668,8 +713,8 @@ namespace Excel_Manipulation_Learning
                         int flag = 0;
                         foreach (var k in Dicval)
                         {
-                            
-                            if (sensorName1[i] == k.Key)
+                            if (sensorName1[i].Equals(k.Key, StringComparison.OrdinalIgnoreCase))
+                                /*if (sensorName1[i] == k.Key)*/
                             {
                                 
                                 //MessageBox.Show(k.Value);
@@ -692,16 +737,17 @@ namespace Excel_Manipulation_Learning
                     {
                         foreach (Excel.Range row in area.Rows)
                         {
-                            if (((Excel.Range)row.Cells[1, dle]).Text == "D.L.E." || ((Excel.Range)row.Cells[1, 12]).Text=="FLAp reference load")
+                            if (((Excel.Range)row.Cells[1, dle]).Text == "D.L.E." || ((Excel.Range)row.Cells[1, frl]).Text=="FLAp reference load" || ((Excel.Range)row.Cells[1, awp]).Text == "FLAp AWP margin")
                             {
                                 continue;
                             }
-                            else if (((Excel.Range)row.Cells[1, dle]).Text == "" && ((Excel.Range)row.Cells[1, 12]).Text=="")
+                            else if (((Excel.Range)row.Cells[1, dle]).Text == "" && ((Excel.Range)row.Cells[1, frl]).Text=="" && ((Excel.Range)row.Cells[1, awp]).Text == "")
                             {
                                 if (j != (cnt))
                                 {
                                     row.Cells[1, dle].value2 = orgSen[j];
-                                    row.Cells[1, 12].value2 = reforgsen[j];//no not 2 its [1,11]
+                                    row.Cells[1, frl].value2 = reforgsen[j];
+                                    row.Cells[1, awp].value2 = refms_2[j];//no not 2 its [1,11]
                                     j += 1;
                                 }
                                 else
@@ -759,10 +805,11 @@ namespace Excel_Manipulation_Learning
                     Dicval.Clear();
                     reforgsen.Clear();
                     refdic.Clear();
+                    refms.Clear();
+                    refms_2.Clear();
 
-                    
                    // xlWorkSheet1_rl.AutoFilterMode = false;
-                    
+
                     if (cmt == 1)
                     {
                         MessageBox.Show("process completed");
@@ -776,7 +823,7 @@ namespace Excel_Manipulation_Learning
             }
             catch (Exception theException)
             {
-                  xlWbk1.Close(false);
+                xlWbk1.Close(false);
                 String errorMessage;
                 errorMessage = "Error: ";
                 errorMessage = String.Concat(errorMessage, theException.Message);
@@ -1040,6 +1087,11 @@ namespace Excel_Manipulation_Learning
             System.Data.DataTable new_one_sheet1 = tableCollection[refload_cb.SelectedItem.ToString()];
             //dataGridView1.DataSource = new_one_sheet.DefaultView;
             refload_sub = refload_cb.SelectedItem.ToString();
+        }
+
+        private void refload_main_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
