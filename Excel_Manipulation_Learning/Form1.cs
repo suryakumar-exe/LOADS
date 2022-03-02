@@ -47,13 +47,14 @@ namespace Excel_Manipulation_Learning
         string genframe_excel = "";
         string steeltower_excel = "";
         string towerca_excel = "";
-
+        string additional_sensor_excel = "";
 
         string refload_excel = "";
         string refload_sub = "";
 
         int cmt = 0;
         int f = 1;
+
         int ff = 1;
         int mc = 0;
         int csn = 0;
@@ -67,7 +68,6 @@ namespace Excel_Manipulation_Learning
         int qvcsn = 0;
         int qvm = 0;
 
-        int fff = 0;
 
         int ref_mc = 0;
         int ref_mval = 0;
@@ -81,17 +81,14 @@ namespace Excel_Manipulation_Learning
         Excel.Workbooks xlWbks1;
         Excel.Workbook xlWbk1;
 
-
         Excel.Application xlApp1_rl;
         Excel.Workbooks xlWbks1_rl;
         Excel.Workbook xlWbk1_rl;
 
         Excel.Range xlUsedRange;
 
-   
-        Excel.Range filteredRange1_ref;
         Excel.Worksheet xlWorkSheet1_rl;
-       
+
 
 
         private void button2_Click(object sender, EventArgs e)
@@ -117,7 +114,7 @@ namespace Excel_Manipulation_Learning
 
                                 MessageBox.Show("Clear All Filter?");
                                 xlUsedRange1.Worksheet.AutoFilterMode = false;*/
-             
+
                 xlApp1_rl = new Excel.Application();
                 xlWbks1_rl = xlApp1_rl.Workbooks;
                 xlWbk1_rl = xlWbks1_rl.Open(refload_excel);
@@ -156,7 +153,7 @@ namespace Excel_Manipulation_Learning
                 GC.WaitForPendingFinalizers();
 
                 //release com objects to fully kill excel process from running in the background
-               
+
             }
             catch (Exception theException)
             {
@@ -182,32 +179,30 @@ namespace Excel_Manipulation_Learning
         {
             try
             {
-                
+
+
+                //Excel File 1:Fatigue Exel
                 Excel.Application xlApp = new Excel.Application();
                 Excel.Workbooks xlWbks = xlApp.Workbooks;
-                //Excel.Workbook xlWbk = xlWbks.Open(@"D:\LOADS PROJECT\fatigue_comparison_ed4_SSLXXX (003).xlsx");
                 Excel.Workbook xlWbk = xlWbks.Open(Fatigue_excel);
                 Excel.Sheets xlSheets = xlWbk.Sheets;
                 Excel.Worksheet xlWorkSheet = xlSheets.get_Item(1);
-
+                //proggress bar (some error)
                 if (!backgroundWorker1.IsBusy)
                 {
                     backgroundWorker1.RunWorkerAsync();
                 }
 
-
-
                 List<KeyValuePair<string, string>> d = new List<KeyValuePair<string, string>>();
-
                 Excel.Range xlUsedRange2 = xlWorkSheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
                 Excel.Range filteredRange4 = xlUsedRange2.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
 
                 int colnum = 1;
-               
+                //to find column index of fatigue excel
                 foreach (Excel.Range row in filteredRange4.Columns)
                 {
                     Excel.Range cell = (Excel.Range)row.Cells[1, 1];
-                    //MessageBox.Show(cell.Value2);
+             
                     if (cell.Value2 == "Main Component")
                     {
                         mc = colnum;
@@ -216,17 +211,17 @@ namespace Excel_Manipulation_Learning
                     {
                         csn = colnum;
                     }
-                    else if(cell.Value2 == "m")
+                    else if (cell.Value2 == "m")
                     {
                         mval = colnum;
-                       
+
                     }
                     else if (cell.Value == "D.L.E.")
                     {
                         dle = colnum;
-                        
+
                     }
-                    else if(cell.Value2 == "FLAp reference load")
+                    else if (cell.Value2 == "FLAp reference load")
                     {
                         frl = colnum;
                     }
@@ -238,18 +233,15 @@ namespace Excel_Manipulation_Learning
                     colnum += 1;
                 }
 
-
+                //to add a csn and m values (unique entry)
                 foreach (Excel.Range area3 in filteredRange4.Areas)
                 {
                     foreach (Excel.Range row in area3.Rows)
                     {
-
-                        // MessageBox.Show(((Excel.Range)row.Cells[1, 2]).Text);
                         int flg = 0;
                         if (((Excel.Range)row.Cells[1, mc]).Text == "Main Component" && ((Excel.Range)row.Cells[1, mval]).Text == "m")
                         {
-                            // MessageBox.Show(((Excel.Range)row.Cells[1, 9]).Text);
-                            
+
                             continue;
                         }
                         else if ((((Excel.Range)row.Cells[1, mc]).Text == "") || (((Excel.Range)row.Cells[1, mval]).Text == ""))
@@ -258,7 +250,7 @@ namespace Excel_Manipulation_Learning
                         }
 
 
-                        else if ( (((Excel.Range)row.Cells[1, mc]).Text != "") && (((Excel.Range)row.Cells[1, mval]).Text != ""))
+                        else if ((((Excel.Range)row.Cells[1, mc]).Text != "") && (((Excel.Range)row.Cells[1, mval]).Text != ""))
                         {
                             foreach (var q in d)
                             {
@@ -269,46 +261,44 @@ namespace Excel_Manipulation_Learning
                             }
                             if (flg == 0)
                             {
-                               
+
                                 d.Add(new KeyValuePair<string, string>(((Excel.Range)row.Cells[1, mc]).Text, ((Excel.Range)row.Cells[1, mval]).Text));
                             }
                         }
                     }
                 }
             LoopEnd:
-                //Console.WriteLine("\nFinished with calculations.");
                 MessageBox.Show("Finished with calculations.");
 
 
 
-                 xlUsedRange = xlWorkSheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
+                xlUsedRange = xlWorkSheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
 
                 int d_count = d.Count;
-                //pitch
-               int x = 0;
+                //pass the csn and m value one by one
+                int x = 0;
                 foreach (var q in d)
                 {
-                    xlUsedRange.AutoFilter(mc+1,q.Key, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
-                    xlUsedRange.AutoFilter(mval+1, q.Value, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
+                    xlUsedRange.AutoFilter(mc, q.Key, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
+                    xlUsedRange.AutoFilter(mval, q.Value, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
                     xlApp.Visible = true;
-                  
+
                     if (x == d_count - 1)
                     {
                         cmt = 1;
                     }
-                  
+
                     x += 1;
                     perform(q.Key, q.Value);
-                   
+
 
 
                 }
-                      
-                        
-     
-               void perform(string ki,string val)
-                {
 
+
+                void perform(string ki, string val)
+                {
+                    //background task
                     if (!backgroundWorker1.IsBusy)
                     {
                         backgroundWorker1.RunWorkerAsync();
@@ -317,6 +307,7 @@ namespace Excel_Manipulation_Learning
 
                     var sensorName1 = new List<string>();
                     var ref_sen = new List<string>();
+                    var asn_arr = new List<string>();
                     foreach (Excel.Range area in filteredRange.Areas)
                     {
                         foreach (Excel.Range row in area.Rows)
@@ -325,9 +316,8 @@ namespace Excel_Manipulation_Learning
                             {
                                 continue;
                             }
-                            else if (((Excel.Range)row.Cells[1,csn]).Text != "")
+                            else if (((Excel.Range)row.Cells[1, csn]).Text != "")
                             {
-                                //MessageBox.Show(((Excel.Range)row.Cells[1, 6]).Text);
                                 string sub = ((Excel.Range)row.Cells[1, csn]).Text;
                                 int len = sub.Length;
                                 int orglen = len - 2;
@@ -373,7 +363,7 @@ namespace Excel_Manipulation_Learning
                                     sensorName1.Add(((Excel.Range)row.Cells[1, csn]).Text);
                                     ref_sen.Add(sub);
                                 }
-                                
+
 
                             }
                             else
@@ -383,13 +373,7 @@ namespace Excel_Manipulation_Learning
 
                         }
                     }
-
-
-                    
-
-
-
-
+                    //open a fatigue file for once
                     if (f == 1)
                     {
                         xlApp1 = new Excel.Application();
@@ -400,19 +384,19 @@ namespace Excel_Manipulation_Learning
 
                     object misValue = System.Reflection.Missing.Value;
                     string temp_sheet = "";
-
-                    if (ki.Substring(0,3).ToLower()=="pit")
+                    //to find a appropriate excel file
+                    if (ki.Substring(0, 3).ToLower() == "pit")
                     {
                         temp_sheet = pitch_excel;
                     }
-                   
-                    else if(ki.Substring(0, 3).ToLower() == "hub")
+
+                    else if (ki.Substring(0, 3).ToLower() == "hub")
                     {
                         temp_sheet = hub_excel;
                     }
                     else if (ki.ToLower() == "main shaft")
                     {
-                     
+
                         temp_sheet = mainshaft_excel;
                     }
                     else if (ki.Substring(0, 3).ToLower() == "mai" || ki.Substring(0, 3).ToLower() == "rot")
@@ -459,6 +443,8 @@ namespace Excel_Manipulation_Learning
                     Excel.Worksheet xlWorkSheet1 = xlWbk1.Sheets[temp_sheet];
                     xlWorkSheet1.Activate();
                     int qvcolnum = 1;
+
+                    //to find a column index of reference file
                     if (qf == 1)
                     {
                         foreach (Excel.Range row in xlWorkSheet1.Columns)
@@ -479,19 +465,18 @@ namespace Excel_Manipulation_Learning
                             qvcolnum += 1;
                         }
                     }
-
-                    // xlApp1.Visible = true;
                     string m_del_value = "DEL m=" + val;
-                    string m_meqn_value = "MEQn m=" + val ;
+                    string m_meqn_value = "MEQn m=" + val;
+                    //to filter a value of qv file
                     Excel.Range xlUsedRange1 = xlWorkSheet1.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
                     if (val.Equals("3") && ki.Substring(0, 3).ToLower() != "yaw")
                     {
-                        xlUsedRange1.AutoFilter(2, "MREQn m=3", Excel.XlAutoFilterOperator.xlAnd,Type.Missing,Type.Missing) ;
+                        xlUsedRange1.AutoFilter(2, "MREQn m=3", Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
                     }
-                   
+
                     else if (val.Equals("3.3333"))
                     {
-                        xlUsedRange1.AutoFilter(2, "MREQn m=3.3", Excel.XlAutoFilterOperator.xlOr, "MREQn m=3.333",true);
+                        xlUsedRange1.AutoFilter(2, "MREQn m=3.3", Excel.XlAutoFilterOperator.xlOr, "MREQn m=3.333", true);
                     }
                     else
                     {
@@ -501,7 +486,7 @@ namespace Excel_Manipulation_Learning
                     Excel.Range filteredRange1 = xlUsedRange1.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
 
 
-                    //rfload
+                    //to open a reference excel for once
                     if (ff == 1)
                     {
                         xlApp1_rl = new Excel.Application();
@@ -514,30 +499,22 @@ namespace Excel_Manipulation_Learning
                     xlWorkSheet1_rl.Activate();
                     xlApp1_rl.Visible = true;
 
-               
 
-                    //Excel.Range xlUsedRange_range = xlWorkSheet1_rl.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
-                   
                     Excel.Range xlRange = xlWorkSheet1_rl.UsedRange;
                     xlRange.Columns.Hidden = false;
-                    //Excel.Range xlRange = xlWorksheet.UsedRange;
-                    xlRange.AutoFilter(7,val, Excel.XlAutoFilterOperator.xlFilterValues, Type.Missing, true);
+                    xlRange.AutoFilter(7, val, Excel.XlAutoFilterOperator.xlFilterValues, Type.Missing, true);
 
                     xlRange.AutoFilter(1, ki, Excel.XlAutoFilterOperator.xlFilterValues, Type.Missing, true);
 
-                    
 
-                    //cleanup
-                 
 
                     //finding rowindex
                     int refnum = 1;
-                    if(q_ref ==1)
+                    if (q_ref == 1)
                     {
                         foreach (Excel.Range row in xlRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible).Columns)
                         {
                             Excel.Range cell = (Excel.Range)row.Cells[1, 1];
-                            //MessageBox.Show(cell.Value2);
                             if (cell.Value2 == "Main Component")
                             {
                                 ref_mc = refnum;
@@ -562,8 +539,6 @@ namespace Excel_Manipulation_Learning
                                 q_ref = 0;
                                 break;
                             }
-
-
                             refnum += 1;
                         }
                     }
@@ -573,7 +548,7 @@ namespace Excel_Manipulation_Learning
 
                     var refdic = new Dictionary<string, string>();
                     var refms = new Dictionary<string, string>();
-
+                    //to find a del and awp from refernce lload file
                     foreach (Excel.Range row in xlRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible).Rows)
                     {
                         Excel.Range MainComponent = (Excel.Range)row.Cells[1, ref_mc];
@@ -587,8 +562,6 @@ namespace Excel_Manipulation_Learning
                         }
                         else if ((MainComponent.Value2 == ki))
                         {
-                         
-                            //MessageBox.Show(MainComponent.Value2.ToString());
                             refdic.Add(((Excel.Range)row.Cells[1, ref_csn]).Text, ((Excel.Range)row.Cells[1, ref_dle]).Text);
                             refms.Add(((Excel.Range)row.Cells[1, ref_csn]).Text, ((Excel.Range)row.Cells[1, ref_awp]).Text);
                         }
@@ -604,7 +577,7 @@ namespace Excel_Manipulation_Learning
                     GC.WaitForPendingFinalizers();
 
 
-
+                    //final reference values
                     var reforgsen = new List<string>();
                     for (int i = 0; i < ref_sen.Count; i++)
                     {
@@ -626,6 +599,7 @@ namespace Excel_Manipulation_Learning
 
                     }
 
+                    //final awp values
                     var refms_2 = new List<string>();
                     for (int i = 0; i < ref_sen.Count; i++)
                     {
@@ -646,7 +620,8 @@ namespace Excel_Manipulation_Learning
 
                     }
 
-                    var Dicval = new Dictionary<string, string>();  
+                    //to add a csn and dle in dictionary
+                    var Dicval = new Dictionary<string, string>();
 
                     foreach (Excel.Range area1 in filteredRange1.Areas)
                     {
@@ -655,7 +630,7 @@ namespace Excel_Manipulation_Learning
                             int SensorRowIndex = 0;
 
 
-                            if(((Excel.Range)row.Cells[1, qvcsn]).Text != "")
+                            if (((Excel.Range)row.Cells[1, qvcsn]).Text != "")
                             {
                                 SensorRowIndex = 1;
                             }
@@ -663,32 +638,32 @@ namespace Excel_Manipulation_Learning
                             {
                                 SensorRowIndex = 0;
                             }
-                   
 
-                            if (((Excel.Range)row.Cells[1, 1]).Text == "Design Loads Delta4000 > Pitch N155/4.X" 
-                                || ((Excel.Range)row.Cells[1, 1]).Text== "Design Loads Delta4000 > Hub N149/5.X"
-                                || ((Excel.Range)row.Cells[1, 1]).Text =="Design Loads Delta4000 > Main(shaft/bearing) (N133/N149/N155)/4.X (N149/N163)/5.X"
+
+                            if (((Excel.Range)row.Cells[1, 1]).Text == "Design Loads Delta4000 > Pitch N155/4.X"
+                                || ((Excel.Range)row.Cells[1, 1]).Text == "Design Loads Delta4000 > Hub N149/5.X"
+                                || ((Excel.Range)row.Cells[1, 1]).Text == "Design Loads Delta4000 > Main(shaft/bearing) (N133/N149/N155)/4.X (N149/N163)/5.X"
                                 || ((Excel.Range)row.Cells[1, 1]).Text == "Design Loads Delta4000 > GBx (N133/N149/N155)/4.X Winergy PZAB3600"
                                 || ((Excel.Range)row.Cells[1, 1]).Text == "Design Loads Delta4000 > NR77.5-1 N155/4.X")
                             {
                                 continue;
                             }
                             else if (((Excel.Range)row.Cells[SensorRowIndex, qvcsn]).Text != "" && ((Excel.Range)row.Cells[1, qvm]).Text == m_del_value)
-                            {  
-                                    Dicval.Add(((Excel.Range)row.Cells[SensorRowIndex, qvcsn]).Text, ((Excel.Range)row.Cells[1, ref_val]).Text); 
-                                
-                                
-                             
-                            }
-                            else if (((Excel.Range)row.Cells[SensorRowIndex, qvcsn]).Text != "" && ((Excel.Range)row.Cells[1, qvm]).Text ==m_meqn_value)
                             {
-                           
-                                String s = ((Excel.Range)row.Cells[SensorRowIndex, qvcsn]).Text + "_MEqn";
-                                Dicval.Add(s, ((Excel.Range)row.Cells[1, ref_val]).Text);
-                          
+                                Dicval.Add(((Excel.Range)row.Cells[SensorRowIndex, qvcsn]).Text, ((Excel.Range)row.Cells[1, ref_val]).Text);
+
+
 
                             }
-                            else if (((Excel.Range)row.Cells[SensorRowIndex, qvcsn]).Text != "" && ((Excel.Range)row.Cells[1, qvm]).Text == "MREQn m=3") 
+                            else if (((Excel.Range)row.Cells[SensorRowIndex, qvcsn]).Text != "" && ((Excel.Range)row.Cells[1, qvm]).Text == m_meqn_value)
+                            {
+
+                                String s = ((Excel.Range)row.Cells[SensorRowIndex, qvcsn]).Text + "_MEqn";
+                                Dicval.Add(s, ((Excel.Range)row.Cells[1, ref_val]).Text);
+
+
+                            }
+                            else if (((Excel.Range)row.Cells[SensorRowIndex, qvcsn]).Text != "" && ((Excel.Range)row.Cells[1, qvm]).Text == "MREQn m=3")
                             {
                                 String s = ((Excel.Range)row.Cells[1, qvcsn]).Text + "_MREqn";
                                 Dicval.Add(s, ((Excel.Range)row.Cells[1, ref_val]).Text);
@@ -705,43 +680,40 @@ namespace Excel_Manipulation_Learning
 
                         }
                     }
-                    
-                    var orgSen = new List<string>();
 
+                    //final dle values
+
+                    var orgSen = new List<string>();
                     for (int i = 0; i < sensorName1.Count; i++)
                     {
                         int flag = 0;
                         foreach (var k in Dicval)
                         {
                             if (sensorName1[i].Equals(k.Key, StringComparison.OrdinalIgnoreCase))
-                                /*if (sensorName1[i] == k.Key)*/
                             {
-                                
-                                //MessageBox.Show(k.Value);
                                 orgSen.Add(k.Value);
                                 flag = 1;
                             }
                         }
-                        if(flag == 0)
+                        if (flag == 0)
                         {
                             orgSen.Add("");
                         }
 
                     }
 
-
+                    //fill all the awp,dle and refernece values in fatigue excel
                     int cnt = orgSen.Count;
                     int j = 0;
-                    //filteredRange.get_Range("D4","D20").Value2 =orgSen;
                     foreach (Excel.Range area in filteredRange.Areas)
                     {
                         foreach (Excel.Range row in area.Rows)
                         {
-                            if (((Excel.Range)row.Cells[1, dle]).Text == "D.L.E." || ((Excel.Range)row.Cells[1, frl]).Text=="FLAp reference load" || ((Excel.Range)row.Cells[1, awp]).Text == "FLAp AWP margin")
+                            if (((Excel.Range)row.Cells[1, dle]).Text == "D.L.E." || ((Excel.Range)row.Cells[1, frl]).Text == "FLAp reference load" || ((Excel.Range)row.Cells[1, awp]).Text == "FLAp AWP margin")
                             {
                                 continue;
                             }
-                            else if (((Excel.Range)row.Cells[1, dle]).Text == "" && ((Excel.Range)row.Cells[1, frl]).Text=="" && ((Excel.Range)row.Cells[1, awp]).Text == "")
+                            else if (((Excel.Range)row.Cells[1, dle]).Text == "" && ((Excel.Range)row.Cells[1, frl]).Text == "" && ((Excel.Range)row.Cells[1, awp]).Text == "")
                             {
                                 if (j != (cnt))
                                 {
@@ -754,7 +726,7 @@ namespace Excel_Manipulation_Learning
                                 {
                                     break;
                                 }
-                                //MessageBox.Show(((Excel.Range)row.Cells[1, 6]).Text);
+              
                             }
                             else
                             {
@@ -763,42 +735,11 @@ namespace Excel_Manipulation_Learning
 
                         }
                     }
-                    /*int cnt1 = reforgsen.Count;
-                    int j1 = 0;
-                    //filteredRange.get_Range("D4","D20").Value2 =orgSen;
-                    foreach (Excel.Range area8 in filteredRange.Areas)
-                    {
-                        foreach (Excel.Range row in area8.Rows)
-                        {
-                            if (((Excel.Range)row.Cells[1, 12]).Text == "FLAp reference load")
-                            {
-                                MessageBox.Show(((Excel.Range)row.Cells[1, 12]).Text);
-                                continue;
-                            }
-                            else if (((Excel.Range)row.Cells[1, 12]).Text == "")
-                            {
-                                if (j1 != (cnt1))
-                                {
-                                    row.Cells[1, 12].value2 = reforgsen[j1]; //no not 2 its [1,11]
-                                    j1 += 1;
-                                }
-                                else
-                                {
-                                    break;
-                                }
-                                //MessageBox.Show(((Excel.Range)row.Cells[1, 6]).Text);
-                            }
-                            else
-                            {
-                                break;
-                            }
-
-                        }
-                    }*/
+               
 
 
 
-
+                    //to clear all the stored values for next iteration
                     sensorName1.Clear();
                     ref_sen.Clear();
                     orgSen.Clear();
@@ -808,17 +749,16 @@ namespace Excel_Manipulation_Learning
                     refms.Clear();
                     refms_2.Clear();
 
-                   // xlWorkSheet1_rl.AutoFilterMode = false;
-
+                    //for process complete indication
                     if (cmt == 1)
                     {
                         MessageBox.Show("process completed");
                         xlUsedRange.Worksheet.AutoFilterMode = false;
                         xlWbk1.Close(false);
                     }
-                    //xlWbks1.Close(false,misValue,misValue);
+
                 }
-                
+
 
             }
             catch (Exception theException)
@@ -836,8 +776,8 @@ namespace Excel_Manipulation_Learning
 
         }
 
-     
 
+        //for fatique excel
         private void button3_Click_1(object sender, EventArgs e)
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel Workbook|*.xlsx|Excel 97-2003 Workbookj|*.xls" })
@@ -845,12 +785,11 @@ namespace Excel_Manipulation_Learning
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     Fatigue.Text = openFileDialog.FileName;
-                    //MessageBox.Show(openFileDialog.FileName);
                     Fatigue_excel = openFileDialog.FileName;
                 }
             }
         }
-
+        //for quickview excel
         private void button4_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel Workbook|*.xlsx|Excel 97-2003 Workbookj|*.xls" })
@@ -873,7 +812,7 @@ namespace Excel_Manipulation_Learning
                             quickview_cb.Items.Clear();
                             foreach (System.Data.DataTable table in tableCollection)
                             {
-                               quickview_cb.Items.Add(table.TableName);
+                                quickview_cb.Items.Add(table.TableName);
                                 hub_cb.Items.Add(table.TableName);
                                 mainshaft_cb.Items.Add(table.TableName);
                                 gearbox_cb.Items.Add(table.TableName);
@@ -886,6 +825,8 @@ namespace Excel_Manipulation_Learning
                                 steeltower_cb.Items.Add(table.TableName);
                                 towerca_cb.Items.Add(table.TableName);
                                 genframe_cb.Items.Add(table.TableName);
+                                gpsupport.Items.Add(table.TableName);
+                                roterbearing.Items.Add(table.TableName);
                             }
 
                         }
@@ -898,9 +839,7 @@ namespace Excel_Manipulation_Learning
         private void quickview_cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Data.DataTable new_one_sheet = tableCollection[quickview_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
             pitch_excel = quickview_cb.SelectedItem.ToString();
-            // MessageBox.Show(pitch_excel);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -911,36 +850,31 @@ namespace Excel_Manipulation_Learning
         private void hub_cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Data.DataTable new_one_sheet1 = tableCollection[hub_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
             hub_excel = hub_cb.SelectedItem.ToString();
-            //MessageBox.Show(pitch_excel);
         }
 
         private void mainshaft_cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Data.DataTable new_one_sheet3 = tableCollection[mainshaft_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
+
             mainshaft_excel = mainshaft_cb.SelectedItem.ToString();
         }
 
         private void gearbox_cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Data.DataTable new_one_sheet1 = tableCollection[gearbox_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
             gearbox_excel = gearbox_cb.SelectedItem.ToString();
         }
 
         private void gbelickoff_cb_SelectedIndexChanged(object sender, EventArgs e)
         {
-             System.Data.DataTable new_one_sheet1 = tableCollection[gbelickoff_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
+            System.Data.DataTable new_one_sheet1 = tableCollection[gbelickoff_cb.SelectedItem.ToString()];
             gearboxelickoff_excel = gbelickoff_cb.SelectedItem.ToString();
         }
 
         private void gbzf_cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Data.DataTable new_one_sheet1 = tableCollection[gbzf_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
             gearboxzf_excel = gbzf_cb.SelectedItem.ToString();
         }
 
@@ -952,7 +886,6 @@ namespace Excel_Manipulation_Learning
         private void blade_cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Data.DataTable new_one_sheet1 = tableCollection[blade_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
             blade_excel = blade_cb.SelectedItem.ToString();
         }
 
@@ -960,21 +893,18 @@ namespace Excel_Manipulation_Learning
         {
 
             System.Data.DataTable new_one_sheet1 = tableCollection[yaw_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
             yaw_excel = yaw_cb.SelectedItem.ToString();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Data.DataTable new_one_sheet1 = tableCollection[mainframe_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
             mainframe_excel = mainframe_cb.SelectedItem.ToString();
         }
 
         private void tower_cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Data.DataTable new_one_sheet1 = tableCollection[tower_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
             tower_excel = tower_cb.SelectedItem.ToString();
 
         }
@@ -982,7 +912,6 @@ namespace Excel_Manipulation_Learning
         private void genframe_cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Data.DataTable new_one_sheet1 = tableCollection[genframe_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
             genframe_excel = genframe_cb.SelectedItem.ToString();
 
         }
@@ -990,7 +919,6 @@ namespace Excel_Manipulation_Learning
         private void steeltower_cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Data.DataTable new_one_sheet1 = tableCollection[steeltower_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
             steeltower_excel = steeltower_cb.SelectedItem.ToString();
 
         }
@@ -998,7 +926,6 @@ namespace Excel_Manipulation_Learning
         private void towerca_cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             System.Data.DataTable new_one_sheet1 = tableCollection[towerca_cb.SelectedItem.ToString()];
-            //dataGridView1.DataSource = new_one_sheet.DefaultView;
             towerca_excel = towerca_cb.SelectedItem.ToString();
         }
 
@@ -1020,7 +947,7 @@ namespace Excel_Manipulation_Learning
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             int sum = 0;
-            for(int i = 0; i <= 100; i++)
+            for (int i = 0; i <= 100; i++)
             {
                 Thread.Sleep(1000);
                 sum = sum + 1;
@@ -1045,11 +972,11 @@ namespace Excel_Manipulation_Learning
         {
             if (e.Cancelled)
             {
-                label14.Text = "Operation fineshed";        
+                label14.Text = "Operation fineshed";
             }
 
         }
-
+        //for reference excel
         private void button1_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel Workbook|*.xlsx|Excel 97-2003 Workbookj|*.xls" })
@@ -1073,7 +1000,7 @@ namespace Excel_Manipulation_Learning
                             foreach (System.Data.DataTable table in tableCollection)
                             {
                                 refload_cb.Items.Add(table.TableName);
-                               
+
                             }
 
                         }
@@ -1090,6 +1017,31 @@ namespace Excel_Manipulation_Learning
         }
 
         private void refload_main_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void roterbearing_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            System.Data.DataTable new_one_sheet1 = tableCollection[roterbearing.SelectedItem.ToString()];
+            //dataGridView1.DataSource = new_one_sheet.DefaultView;
+            mainframe_excel = roterbearing.SelectedItem.ToString();
+        }
+        //for additional sensor excel
+        private void btn_asn_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel Workbook|*.xlsx|Excel 97-2003 Workbookj|*.xls" })
+            {
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    cbx_asn.Text = openFileDialog.FileName;
+                    //MessageBox.Show(openFileDialog.FileName);
+                    additional_sensor_excel = openFileDialog.FileName;
+                }
+            }
+        }
+
+        private void Fatigue_SelectedIndexChanged(object sender, EventArgs e)
         {
 
         }
